@@ -1,0 +1,214 @@
+================================================================================
+                    IMPROVED DATA LEAKAGE DETECTION SYSTEM
+                        MERMAID SEQUENCE DIAGRAMS
+================================================================================
+Project Title : Improved Data Leakage Detection System
+Technology    : MERN Stack (MongoDB, Express.js, React.js, Node.js)
+Diagram Type  : UML Sequence Diagrams (Mermaid.js Format)
+================================================================================
+
+
+================================================================================
+1. OPERATION 1: SECURE FILE UPLOAD, STEGANOGRAPHIC EMBEDDING & DISTRIBUTION
+================================================================================
+Description:
+The administrator uploads a confidential file (.txt, .jpg, .bmp), selects target 
+recipients, and the backend steganography engine imperceptibly embeds a unique 
+agent-specific tracking token into each copy while logging the transaction into 
+MongoDB audit logs.
+
+[MERMAID CODE START]
+sequenceDiagram
+    autonumber
+    actor Admin as 👨‍💼 Administrator
+    participant UI as 🖥️ Frontend (React.js)
+    participant API as ⚙️ Backend API (Express.js)
+    participant Stego as 🧩 Steganography Engine
+    participant Storage as 📁 File Storage
+    participant DB as 🗄️ Database (MongoDB)
+
+    Admin->>UI: Selects file (.txt, .jpg, .bmp) & chooses target agents
+    UI->>API: POST /api/files/distribute (File, Agent_IDs, JWT Token)
+    activate API
+    
+    API->>API: Validate file format & file size limits
+    API->>Storage: Store original master file
+    
+    loop For Each Selected Agent
+        API->>API: Generate unique tracking token (e.g., TRK-UUID)
+        API->>Stego: embedWatermark(originalFile, agentTrackingToken)
+        activate Stego
+        Stego->>Stego: Apply embedding (LSB for images / Zero-Width encoding for text)
+        Stego-->>API: Return unique recipient-specific watermarked file
+        deactivate Stego
+        
+        API->>Storage: Store watermarked copy (file_agent_id.ext)
+        API->>DB: Insert Audit Log (FileID, AgentID, TrackingToken, Timestamp)
+    end
+    
+    API-->>UI: 200 OK (Distribution & Watermarking Complete)
+    deactivate API
+    UI-->>Admin: Display "File Distributed & Recipient Copies Generated"
+[MERMAID CODE END]
+
+
+================================================================================
+2. OPERATION 2: FORENSIC LEAK DETECTION & RECIPIENT ATTRIBUTION
+================================================================================
+Description:
+When a confidential document is suspected to have been leaked, the administrator 
+uploads the leaked file to the forensic portal. The extraction engine scans for 
+embedded steganographic payloads, retrieves the tracking token, matches it against 
+MongoDB audit logs, and attributes the leak to the responsible recipient copy.
+
+[MERMAID CODE START]
+sequenceDiagram
+    autonumber
+    actor Admin as 👨‍💼 Administrator
+    participant UI as 🖥️ Forensic Portal (React.js)
+    participant API as ⚙️ Backend API (Express.js)
+    participant Stego as 🧩 Steganography Engine
+    participant DB as 🗄️ Database (MongoDB)
+
+    Admin->>UI: Uploads suspected/leaked file for analysis
+    UI->>API: POST /api/forensics/analyze (Leaked File, Admin JWT)
+    activate API
+
+    API->>Stego: extractTrackingToken(leakedFileBuffer)
+    activate Stego
+    Stego->>Stego: Scan & decode embedded payload (LSB bits / Zero-Width chars)
+    
+    alt Token Successfully Extracted
+        Stego-->>API: Return extracted Tracking Token (e.g., TRK-UUID)
+        deactivate Stego
+        
+        API->>DB: findOne({ trackingToken: TRK-UUID })
+        activate DB
+        DB-->>API: Return Audit Record (Agent Name, Agent ID, Email, Shared Date, Download Time)
+        deactivate DB
+        
+        API-->>UI: 200 OK (Forensic Report: Culprit Agent Details, Match Confidence: 100%)
+        UI-->>Admin: Display Leak Attribution Report & Evidence Summary
+    else No Token Found / File Corrupted
+        activate Stego
+        Stego-->>API: Null / Decoding Failure
+        deactivate Stego
+        API-->>UI: 404 Not Found (No watermark signature detected)
+        UI-->>Admin: Display "Unable to detect tracking signature in uploaded file"
+    end
+    deactivate API
+[MERMAID CODE END]
+
+
+================================================================================
+3. COMPREHENSIVE END-TO-END SEQUENCE DIAGRAM (ALL PHASES COMBINED)
+================================================================================
+Description:
+Combines File Distribution, Steganographic Embedding, Agent Download, and Forensic 
+Leak Analysis into a single end-to-end lifecycle diagram.
+
+[MERMAID CODE START]
+sequenceDiagram
+    autonumber
+    actor Admin as 👨‍💼 Administrator
+    actor Agent as 🧑‍💻 Employee / Agent
+    participant UI as 🖥️ Web Frontend (React)
+    participant API as ⚙️ Backend API (Express/Node)
+    participant Stego as 🧩 Steganography Engine
+    participant DB as 🗄️ Database (MongoDB)
+    participant Storage as 📁 Secure File Storage
+
+    %% ==========================================
+    %% PHASE 1: UPLOAD & STEGANOGRAPHIC ALLOCATION
+    %% ==========================================
+    rect rgb(240, 248, 255)
+    Note over Admin, Storage: Phase 1: Secure File Upload & Target Agent Allocation
+    Admin->>UI: Upload confidential file (.txt, .jpg, .bmp) & select target agents
+    UI->>API: POST /api/files/distribute (File + Agent IDs, JWT Auth)
+    activate API
+    API->>API: Validate file format & size limits
+    API->>Storage: Save original master file
+
+    loop For Each Selected Agent
+        API->>Stego: Embed unique Agent Tracking ID into file copy
+        activate Stego
+        Stego->>Stego: Apply steganography (LSB for images / Zero-Width chars for text)
+        Stego-->>API: Return recipient-specific watermarked file
+        deactivate Stego
+        API->>Storage: Save recipient-specific copy
+        API->>DB: Insert Audit Record (FileID, RecipientID, TrackingToken, Timestamp)
+    end
+
+    API-->>UI: Return Allocation Confirmation & Audit Summary
+    deactivate API
+    UI-->>Admin: Display "File Successfully Distributed & Watermarked"
+    end
+
+    %% ==========================================
+    %% PHASE 2: AGENT ACCESS & FILE DOWNLOAD
+    %% ==========================================
+    rect rgb(245, 255, 245)
+    Note over Agent, Storage: Phase 2: Agent Access & Personalized Download
+    Agent->>UI: Authenticate & navigate to "My Shared Files"
+    UI->>API: GET /api/files/my-files (JWT Token)
+    API->>DB: Query files assigned to Agent ID
+    DB-->>API: Return assigned file records
+    API-->>UI: Render file list
+    Agent->>UI: Click "Download File"
+    UI->>API: GET /api/files/download/:fileId
+    activate API
+    API->>Storage: Fetch agent's unique watermarked copy
+    API->>DB: Log download event (AgentID, FileID, DownloadTime)
+    API-->>UI: Stream recipient-specific file
+    deactivate API
+    UI-->>Agent: Download complete (imperceptibly watermarked)
+    end
+
+    %% ==========================================
+    %% PHASE 3: FORENSIC LEAK ANALYSIS & ATTRIBUTION
+    %% ==========================================
+    rect rgb(255, 240, 240)
+    Note over Admin, Storage: Phase 3: Forensic Leak Analysis & Culprit Attribution
+    Admin->>UI: Upload recovered suspicious/leaked file
+    UI->>API: POST /api/forensics/analyze (Leaked File, Admin JWT)
+    activate API
+    API->>Stego: Extract hidden tracking token from leaked file
+    activate Stego
+    Stego->>Stego: Decode steganographic payload
+    Stego-->>API: Extracted Tracking Token
+    deactivate Stego
+
+    API->>DB: Query Audit Logs for Tracking Token
+    activate DB
+    DB-->>API: Return Match (Original File, Recipient Info, Timestamp, Download Log)
+    deactivate DB
+
+    alt Tracking Match Found
+        API-->>UI: Return Forensic Attribution Report (Agent ID, Name, Timestamp, Match Confidence: 100%)
+        UI-->>Admin: Display Leak Attribution & Evidence Details
+    else No Embedded Signature Detected / File Corrupted
+        API-->>UI: Return "No Tracking Token Detected / Unsupported File"
+        UI-->>Admin: Display Investigation Alert / Unmatched Result
+    end
+    deactivate API
+    end
+[MERMAID CODE END]
+
+
+================================================================================
+4. HOW TO RENDER / VIEW THESE DIAGRAMS
+================================================================================
+1. Online:
+   - Visit https://mermaid.live
+   - Copy the code between [MERMAID CODE START] and [MERMAID CODE END]
+   - Paste into the editor to view and download PNG/SVG images.
+
+2. In Markdown / GitHub:
+   - Paste the code inside markdown code fences:
+     ```mermaid
+     (paste mermaid code here)
+     ```
+
+3. In VS Code:
+   - Install the extension "Markdown Preview Mermaid Support" or "Mermaid Preview".
+================================================================================
