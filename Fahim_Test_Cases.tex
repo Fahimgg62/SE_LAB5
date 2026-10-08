@@ -1,0 +1,189 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{Software Testing \& Quality Assurance}}\\[4pt]
+    {\Large \textbf{Lab Report: Test Case Design using EP and BVA}}\\[8pt]
+    \rule{\textwidth}{1pt}\\[6pt]
+    \textbf{Project Title:} Improved Data Leakage Detection System\\
+    \textbf{Student Name:} Fahim Bin Zaman \quad\textbar\quad \textbf{Student ID:} 24524203055\\
+    \textbf{Technology Stack:} MERN Stack (MongoDB, Express.js, React.js, Node.js)\\
+    \rule{\textwidth}{1pt}
+\end{center}
+
+\vspace{0.8em}
+
+\section*{1. System Under Test: Improved Data Leakage Detection System}
+The Improved Data Leakage Detection System is a secure enterprise file-sharing platform designed to provide traceability and accountability. The system allows administrators to upload confidential files, generates unique recipient-specific copies using steganographic tracking tokens, and enables forensic leak analysis to attribute compromised files to their original recipients.
+
+\vspace{0.5em}
+
+% ==============================================================================
+% REQUIREMENT 1: FILE UPLOAD FORMAT VALIDATION (EP)
+% ==============================================================================
+\section*{2. Requirement R1 --- Secure File Upload and Format Validation [FR-1]}
+The system shall validate file formats during upload, supporting only \texttt{.txt}, \texttt{.jpg}, and \texttt{.bmp} formats for steganographic tracking. All other file formats must be strictly rejected with a descriptive error message.
+
+\vspace{0.5em}
+
+\subsubsection*{Designed Test Case: Format Validation (Equivalence Partitioning)}
+\noindent
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.5cm}|X|}
+\hline
+Field & Details \\
+\hline
+Test Case ID & TC-DLD-EP-01 \\
+\hline
+Test Scenario & Verify that the system rejects unsupported file formats such as \texttt{.pdf} during file upload using Equivalence Partitioning (Requirement FR-1). \\
+\hline
+Preconditions & 
+\begin{enumerate}[leftmargin=*,nosep]
+    \item Administrator account is active and logged into the portal.
+    \item Administrator has navigated to the File Upload page (\texttt{/admin/upload}).
+    \item System is in an idle state ready to receive upload requests.
+\end{enumerate} \\
+\hline
+Test Steps & 
+\begin{enumerate}[leftmargin=*,nosep]
+    \item Navigate to the File Upload module.
+    \item Click on the ``Browse File'' button.
+    \item Select an unsupported format file: \texttt{financial\_statement.pdf}.
+    \item Click on the ``Upload \& Distribute'' button.
+\end{enumerate} \\
+\hline
+Input Data & 
+\begin{itemize}[leftmargin=*,nosep]
+    \item Target File: \texttt{financial\_statement.pdf}
+    \item MIME Type: \texttt{application/pdf}
+    \item File Size: $2.4\text{ MB}$
+\end{itemize} \\
+\hline
+Expected Result & System blocks the upload and displays an error message: \textit{``Invalid file format. Only .txt, .jpg, and .bmp files are supported for steganographic tracking.''} File is not stored on server storage. \\
+\hline
+Actual Result & (To be completed during test execution) \\
+\hline
+Status & (Pass / Fail) \\
+\hline
+Remarks & Validates invalid partition P4 (Disallowed format) using Equivalence Partitioning (EP) technique. \\
+\hline
+\end{tabularx}
+
+\newpage
+
+% ==============================================================================
+% REQUIREMENT 2: FILE UPLOAD SIZE LIMITATION (BVA)
+% ==============================================================================
+\section*{3. Requirement R2 --- File Upload Size Limitation [FR-1 / NFR-3]}
+To preserve server processing performance and guarantee reliable steganographic embedding, the maximum allowed file upload size is \textbf{50 MB} ($52{,}428{,}800\text{ Bytes}$). Any file exceeding 50 MB must be rejected. Empty files ($0\text{ Bytes}$) are also disallowed.
+
+\vspace{0.5em}
+
+\subsubsection*{Designed Test Case: File Size Limit (Boundary Value Analysis)}
+\noindent
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.5cm}|X|}
+\hline
+Field & Details \\
+\hline
+Test Case ID & TC-DLD-BVA-01 \\
+\hline
+Test Scenario & Verify that the system rejects file uploads that exceed the 50 MB upper size limit using Boundary Value Analysis (Requirement FR-1 / NFR-3). \\
+\hline
+Preconditions & 
+\begin{enumerate}[leftmargin=*,nosep]
+    \item Administrator account is active and logged in with upload permissions.
+    \item Test file \texttt{large\_dataset.txt} of size $50.1\text{ MB}$ ($52{,}533{,}658\text{ Bytes}$) is prepared on the client device.
+\end{enumerate} \\
+\hline
+Test Steps & 
+\begin{enumerate}[leftmargin=*,nosep]
+    \item Open the File Upload module (\texttt{/admin/upload}).
+    \item Select the file \texttt{large\_dataset.txt} ($50.1\text{ MB}$).
+    \item Click on the ``Upload \& Process'' button.
+\end{enumerate} \\
+\hline
+Input Data & 
+\begin{itemize}[leftmargin=*,nosep]
+    \item Filename: \texttt{large\_dataset.txt}
+    \item File Size: $50.1\text{ MB}$ ($52{,}533{,}658\text{ Bytes}$)
+\end{itemize} \\
+\hline
+Expected Result & System halts upload at backend middleware, responds with HTTP 413 Payload Too Large, and displays error: \textit{``Upload failed: File size exceeds the maximum limit of 50 MB.''} File is not stored. \\
+\hline
+Actual Result & (To be completed during test execution) \\
+\hline
+Status & (Pass / Fail) \\
+\hline
+Remarks & Validates boundary value $50\text{ MB} + 0.1\text{ MB}$ (over-limit threshold) using Boundary Value Analysis (BVA) technique. \\
+\hline
+\end{tabularx}
+
+\vspace{2em}
+
+% ==============================================================================
+% REQUIREMENT 3: TARGET AGENT CONCURRENT ALLOCATION COUNT (BVA)
+% ==============================================================================
+\section*{4. Requirement R3 --- Target Agent Concurrent Allocation Count [FR-2]}
+When distributing a confidential document, the Administrator can assign between \textbf{1 and 20 authorized agents} concurrently in a single allocation cycle. Attempting to assign 0 agents or more than 20 agents must be rejected by the system.
+
+\vspace{0.5em}
+
+\subsubsection*{Designed Test Case: Agent Batch Allocation Limit (Boundary Value Analysis)}
+\noindent
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.5cm}|X|}
+\hline
+Field & Details \\
+\hline
+Test Case ID & TC-DLD-BVA-02 \\
+\hline
+Test Scenario & Verify that the system blocks file distribution when selected agent count exceeds the 20-agent batch limit using Boundary Value Analysis (Requirement FR-2). \\
+\hline
+Preconditions & 
+\begin{enumerate}[leftmargin=*,nosep]
+    \item Administrator has uploaded a valid document \texttt{strategy\_doc.txt}.
+    \item System database contains at least 25 registered active agents.
+    \item Administrator is on the Target Agent Allocation interface.
+\end{enumerate} \\
+\hline
+Test Steps & 
+\begin{enumerate}[leftmargin=*,nosep]
+    \item Navigate to the ``Target Agent Allocation'' screen.
+    \item Select 21 agent checkboxes from the active agents list.
+    \item Click on the ``Proceed to Steganographic Distribution'' button.
+\end{enumerate} \\
+\hline
+Input Data & 
+\begin{itemize}[leftmargin=*,nosep]
+    \item Target File: \texttt{strategy\_doc.txt}
+    \item Selected Agent Count: 21 agents
+\end{itemize} \\
+\hline
+Expected Result & System blocks the distribution workflow and displays validation alert: \textit{``Batch distribution limit exceeded: Maximum 20 recipients permitted per allocation cycle.''} No steganographic copies are generated. \\
+\hline
+Actual Result & (To be completed during test execution) \\
+\hline
+Status & (Pass / Fail) \\
+\hline
+Remarks & Validates boundary value $20 + 1 = 21$ agents (over-capacity threshold) using Boundary Value Analysis (BVA) technique. \\
+\hline
+\end{tabularx}
+
+\end{document}
